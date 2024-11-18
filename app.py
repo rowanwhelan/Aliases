@@ -12,6 +12,16 @@ def generate_game():
     board = generate_board('data/words.csv')
     return render_template("game.html", grid=board)
 
+@app.route("/practice_guesser", methods=["GET", "POST"])
+def generate_prac_gues_game():
+    board = generate_board('data/words.csv')
+    return render_template("practice_guesser.html", grid=board)
+
+@app.route("/practice_giver", methods=["GET", "POST"])
+def generate_prac_give_game():
+    board = generate_board('data/words.csv')
+    return render_template("practice_giver.html", grid=board)
+
 def main():
     app.run(debug=True)
     
