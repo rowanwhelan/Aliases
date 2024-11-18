@@ -18,11 +18,39 @@
             margin-bottom: 20px;
             color: #333;
         }
+        .container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+        /* Chat log section */
+        .chat-log {
+            width: 250px;
+            height: 100%;
+            padding: 10px;
+            overflow-y: auto;
+            border-right: 2px solid #ccc;
+            background-color: #f0f0f0;
+        }
+        .chat-log .clue {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .chat-log .red {
+            background-color: #ffcccc;
+        }
+        .chat-log .blue {
+            background-color: #cce5ff;
+        }
+        /* Grid layout */
         .grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             gap: 10px;
             max-width: 550px; /* Ensures grid stays within 5-column layout */
+            padding: 20px;
+            flex-grow: 1;
         }
         .grid-item {
             display: flex;
@@ -83,19 +111,22 @@
     </style>
 </head>
 <body>
-    <div class="grid">
-        {% for word, word_type in grid %}
-            <div class="grid-item" onclick="handleClick(this, {{ word_type }})">
-                {{ word }}
+    <div class="container" style="background-color: {{ 'blue' if turn == 1 else 'red' }};">
+        <!-- Chat Log Section -->
+        <div class="chat-log">
+            <div class="clue {{ 'red' if turn == 0 else 'blue' }}">
+                <strong>Clue:</strong> {{ clue }} <span>({{ related }})</span>
             </div>
-        {% endfor %}
-    </div>
+        </div>
 
-    <!-- Clue and number input box section below the grid -->
-    <div class="clue-section">
-        <div class="clue-label">Clue:</div>
-        <input type="text" class="clue-input" id="clue-input" placeholder="Enter clue" />
-        <input type="number" class="number-input" id="number-input" placeholder="Enter number" min="1" />
+        <!-- Game Grid Section -->
+        <div class="grid">
+            {% for word, word_type in grid %}
+                <div class="grid-item" onclick="handleClick(this, {{ word_type }})">
+                    {{ word }}
+                </div>
+            {% endfor %}
+        </div>
     </div>
 
     <script>

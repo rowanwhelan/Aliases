@@ -2,13 +2,14 @@ from enum import Enum
 import gensim.downloader as api
 #import spacy
 from nltk.corpus import wordnet
+from gensim.models import KeyedVectors
 
 class words(Enum):
     IN = 0
     OUT = 1
 
 class clue_generator:
-    def __init__(self, board, team, limit=5):
+    def __init__(self, board, team, model_path, limit=15):
         self.board = board
         self.team = team
         list = []
@@ -17,6 +18,7 @@ class clue_generator:
                 list.append(word[0])
         self.word_list = list
         self.limit = limit
+        self.model_path = model_path
         
         
     def related(self, clue, word):
@@ -48,6 +50,8 @@ class clue_generator:
 
         #NLTK
         def nltk_word_similarity(word1, word2):
+            if word1 == None or word2 == None:
+                return 0
             synsets1 = wordnet.synsets(word1)
             synsets2 = wordnet.synsets(word2)
 
@@ -68,33 +72,49 @@ class clue_generator:
         
         output: 
             score, (implementation unclear right now, this will be updated once the method is finalized)
+            related, the number of words the model thinks the clue gives hint for
         '''
         total_relational_score = 0
+        total_related_clues = 0
         for i in self.board:
             current_related = self.related(clue, i[0])
+            if current_related >= 1.0:
+                total_related_clues += 1
             if i[1] == self.team:
                 total_relational_score += current_related
+            elif i[1] == abs(self.team-1):
+                total_relational_score -= (current_related/4)
             elif i[1] == -1:
                 total_relational_score -= current_related
-            else:
-                continue
-        score = total_relational_score
-        return score
+        score = total_relational_score * (total_related_clues + 0.01)
+        return score, total_related_clues
     
     def get_synonyms(self, word):
         '''
-        this method will take a word and return a list of synonyms for a word
+        This method takes a word and returns a list of synonyms using WordNet.
+        
         input: 
-            word, a word we want synomyms for
-
-        output:
-            list, a list of strings which are synonyms for the given word
+            word: A string representing the word to find synonyms for
+        
+        output: 
+            filtered_list: A list of synonym strings (excluding one-letter words)
         '''
-        synonyms = set()
-        for syn in wordnet.synsets(word[0]):
-            for lemma in syn.lemmas():
-                synonyms.add(lemma.name())  # Add synonym to set (set to avoid duplicates)
-        return list(synonyms)[:self.limit]
+        try:
+            synonyms = set()  # Using a set to avoid duplicates
+            # Get synsets for the word
+            for syn in wordnet.synsets(word):
+                for lemma in syn.lemmas():
+                    # Only add synonyms that are not one-letter words
+                    if len(lemma.name()) > 1 and lemma.name() != word and not any(c in lemma.name() for c in [' ', '_', '-']):
+                        synonyms.add(lemma.name())
+                    
+            
+            # Convert the set back to a list and return it
+            return list(synonyms)[:self.limit]
+
+        except Exception as e:
+            print(f"Error while fetching synonyms: {e}")
+            return []
     
     def give_clue(self):
         '''
@@ -106,20 +126,22 @@ class clue_generator:
         '''
         best_clue = ''
         highest_score = -1
+        highest_related_clues = 0
         for word in self.word_list:
             print(f"Generating clues for '{word}'...")
             synonyms = self.get_synonyms(word)
             
             for synonym in synonyms:
-                score = self.score_clue(synonym)
-                print(f"  Clue: {synonym} - Score: {score}")
+                score, related_clues = self.score_clue(synonym)
+                print(f"  Clue: {synonym} - Score: {score}, Related: {related_clues}")
                 
                 # Check if the current synonym has a higher score
                 if score > highest_score:
                     highest_score = score
                     best_clue = synonym
+                    highest_related_clues = related_clues
         
-        return best_clue
+        return best_clue, highest_related_clues
     
 
     
