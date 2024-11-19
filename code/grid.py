@@ -108,20 +108,3 @@ class grid:
             word_assignments.append(tile(word, 2, False))
         random.shuffle(word_assignments)
         return word_assignments
-    
-    def to_dict(self):
-        '''Convert the grid to a dictionary for easy session storage.'''
-        return {
-            'size': self.size,
-            'turn': self.turn,
-            'words': [
-            tiles.to_dict() if isinstance(tiles, tile) else tiles  # Check if tile is a Tile object before calling to_dict()
-            for tiles in self.list
-        ],
-            'file': self.file
-        }
-
-    @staticmethod
-    def from_dict(data):
-        g = grid(data['size'], data['file'], data['words'], data['turn'])
-        return g

@@ -11,14 +11,3 @@ class tile:
 
     def get_word(self):
         return self.word
-    
-    def to_dict(self):
-        return {
-            'word': self.word,
-            'team': self.team,
-            'used': self.used
-        }
-
-    @staticmethod
-    def from_dict(data):
-        return tile(data['word'], data['team'], data['used'])

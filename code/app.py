@@ -17,29 +17,16 @@ def index():
 @app.route("/game", methods=["GET", "POST"])
 def generate_game():
     random.seed(2)
-    if 'board' in session:
-        board_data = session['board']
-        board = grid.from_dict(board_data)
-    else:
-        board = grid(25, 'data/common_words.csv',seed=1)
-    game_board = board.to_dict()
-    session['board'] = game_board
+    board = grid(25, 'data/common_words.csv',seed=1)
     return render_template("game.html", grid=board)
 
 @app.route('/update-grid', methods=['POST'])
 def update_grid():
     data = request.json
     word = data.get('word')
-    if 'board' in session:
-        board_data = session['board']
-        board = grid.from_dict(board_data)
-    else:
-        board = grid(25, 'wordlist.csv')
-        
     turn = board.update_grid(word)
     session['board'] = grid.to_dict()
 
-    # Return the updated game state (including the turn)
     return jsonify({
         'turn': turn
     })
