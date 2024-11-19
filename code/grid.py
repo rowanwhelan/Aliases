@@ -8,6 +8,7 @@ class grid:
     vairables:
         size, (int) the number of Tile objects the grid is initialized with
         file, (string) the file containing the word corpus which the grid will sample from
+        turn, (int) a value representing who is currently on the play, either 0 for player 1 or 1 for player 2 
         seed, (int) the random seed that all randomization is based on 
     '''
     def __init__(self, size, file, seed=None):
@@ -20,7 +21,6 @@ class grid:
         '''
         if seed is not None:
             random.seed(seed)
-        
         self.seed = seed
         
         with open(file, mode='r', encoding='utf-8') as f:
@@ -35,6 +35,7 @@ class grid:
         reservoir = self.post_process(reservoir)
         self.size = size
         self.list = self.set_board_parameters(reservoir)
+        self.turn = random.randint(0,1)
     
     def __iter__(self):
         '''
@@ -56,9 +57,14 @@ class grid:
         Args:
             guess, (string) a string representing the word the player has chosen to guess
         '''
-        for tile in list:
-            if tile.word == guess:
-                tile.guess()
+        for i in range(0, self.size):
+            if self.list[i].get_word() == guess:
+                if self.list[i].guess(team=self.turn):
+                    continue
+                else:
+                    turn = 1 - turn
+            else:
+                continue
         return 
 
     def post_process(self, word_list):
@@ -72,7 +78,7 @@ class grid:
         '''
         for i in range(len(word_list)):
             if "_" in word_list[i]:
-                word_list[i] = word_list[i].replace("_", " ")
+                word_list[i] = (word_list[i].replace("_", " ")).to_lower()
         return word_list
     
     def set_board_parameters(self, board):

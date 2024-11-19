@@ -4,7 +4,10 @@ class tile:
         self.team = team
         self.used = used
         
-    def guess(self):
+    def guess(self, team):
         if not self.used:
             self.used == True
-        return 
+        return self.team == team
+
+    def get_word(self):
+        return self.word

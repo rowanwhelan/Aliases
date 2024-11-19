@@ -6,7 +6,7 @@ import nltk
 import gensim.downloader as api
 from grid import grid
 
-app = Flask(__name__,template_folder='../templates')
+app = Flask(__name__,template_folder='../templates', static_folder='../static')
 app.secret_key = 'ijbafibsiygfadnafhiqrubqfk'
 
 @app.route("/", methods=["GET", "POST"])
@@ -16,10 +16,10 @@ def index():
 
 @app.route("/game", methods=["GET", "POST"])
 def generate_game():
-    random.seed(1)
+    random.seed(2)
     board = grid(25, 'data/common_words.csv',seed=1)
     turn = random.randint(0,1)
-    return render_template("game.html", grid=board, turn=turn)
+    return render_template("game.html", grid=board)
 
 @app.route('/update-grid', methods=['POST'])
 def update_grid():

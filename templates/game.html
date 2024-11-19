@@ -3,115 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
-        }
-        h1 {
-            margin-bottom: 20px;
-            color: #333;
-        }
-        .container {
-            display: flex;
-            width: 100%;
-            height: 100%;
-        }
-        .chat-log {
-            width: 250px;
-            height: 100%;
-            padding: 10px;
-            overflow-y: auto;
-            border-right: 2px solid #ccc;
-            background-color: #f0f0f0;
-        }
-        .chat-log .clue {
-            margin: 10px 0;
-            padding: 10px;
-            border-radius: 5px;
-        }
-        .chat-log .red {
-            background-color: #ffcccc;
-        }
-        .chat-log .blue {
-            background-color: #cce5ff;
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 10px;
-            max-width: 550px;
-            padding: 20px;
-            flex-grow: 1;
-        }
-        .grid-item {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 150px;
-            height: 150px;
-            background-color: #ffffff;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            font-size: 1.2rem;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            word-wrap: break-word;
-            white-space: normal;
-            padding: 10px;
-            cursor: pointer;
-        }
-        .grid-item:hover {
-            background-color: #f1f1f1;
-        }
-        .player1 {
-            background-color: red;
-        }
-        .player2 {
-            background-color: blue;
-        }
-        .assassin {
-            background-color: black;
-            color: white;
-        }
-        .neutral {
-            background-color: tan;
-        }
-        .clue-section {
-            margin-top: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        .clue-label {
-            font-size: 1.2rem;
-            margin-right: 10px;
-        }
-        .number-input, .clue-input {
-            padding: 5px;
-            font-size: 1rem;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        .number-input:focus, .clue-input:focus {
-            outline: none;
-            border-color: #007bff;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <div class="container" style="background-color: {{ 'blue' if turn == 1 else 'red' }};">
+    <!-- Use grid.turn to set the background color -->
+    <div id="game-container" class="container" style="background-color: {{ 'blue' if grid.turn == 1 else 'red' }};">
         <!-- Chat Log Section -->
         <div class="chat-log">
-            <div class="clue {{ 'red' if turn == 0 else 'blue' }}">
-                <strong>Clue:</strong> {{ clue }} <span>({{ related }})</span>
+            <div class="clue {{ 'red' if grid.turn == 0 else 'blue' }}">
+                <strong>Clue:</strong> {{ grid.clue }} <span>({{ grid.related }})</span>
             </div>
         </div>
 
@@ -128,11 +28,10 @@
     <script>
         // Function to handle click events on grid items
         function handleClick(element, wordType, word, used) {
-            // Only handle the click if the tile has not been used (used is false)
             if (used === false) {
                 // Disable clicking after the box has been clicked
                 element.style.pointerEvents = 'none';
-    
+
                 // Change the background color based on the word type after click
                 switch (wordType) {
                     case 0: // PLAYER1
@@ -148,8 +47,8 @@
                         element.classList.add('neutral');
                         break;
                 }
-    
-                // Send the guess to the backend via a POST request (optional)
+
+                // Send the guess to the backend via a POST request
                 fetch('/update-grid', {
                     method: 'POST',
                     headers: {
@@ -160,7 +59,6 @@
                   .then(data => console.log('Grid updated:', data))
                   .catch(error => console.error('Error:', error));
             } else {
-                // Optionally, you can handle a case where the tile is already used
                 console.log('Tile has already been used. Click ignored.');
             }
         }
