@@ -26,10 +26,8 @@ def update_grid():
     data = request.json
     word = data.get('word')
     
-    # Update the grid based on the clicked word
     grid.update_grid(word)
-    
-    # Return the updated game state (you can modify this based on your game's logic)
+
     return jsonify({
         'success': True,
         'message': 'Grid updated successfully'
