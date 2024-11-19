@@ -25,7 +25,6 @@ def generate_game():
 def update_grid():
     data = request.json
     word = data.get('word')
-    
     grid.update_grid(word)
 
     return jsonify({
