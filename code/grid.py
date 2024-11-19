@@ -1,6 +1,7 @@
 import random
 import csv
 from tile import tile
+import json
 
 class grid:
     '''
@@ -11,32 +12,35 @@ class grid:
         turn, (int) a value representing who is currently on the play, either 0 for player 1 or 1 for player 2 
         seed, (int) the random seed that all randomization is based on 
     '''
-    def __init__(self, size, file, seed=None):
+    def __init__(self, size, file, list=None, turn=None, seed=None):
         '''
         A constructor for grid
         Args:
             size, (int) the number of Tile objects the grid is initialized with
             file, (string) the file containing the word corpus which the grid will sample from
-            seed, (int) the random seed that all randomization is based on 
+            list, (list) the list of Tile objects (optional if creating a new grid)
+            turn, (int) the current turn (optional if creating a new grid)
+            seed, (int) the random seed that all randomization is based on (optional)
         '''
+        self.seed = seed
         if seed is not None:
             random.seed(seed)
-        self.seed = seed
         
-        with open(file, mode='r', encoding='utf-8') as f:
-            reader = csv.reader(f)
-            words = [row[0] for row in reader]  
+        if list is None or turn is None:
+            with open(file, mode='r', encoding='utf-8') as f:
+                reader = csv.reader(f)
+                words = [row[0] for row in reader]  
+            reservoir = random.sample(words, size)  
+            reservoir = self.post_process(reservoir)
+            self.list = self.set_board_parameters(reservoir)
+            self.turn = random.randint(0, 1)  # Randomly choose starting turn
+        else:
+            self.list = list
+            self.turn = turn
 
-        unique_words = list(set(words))  
-        if len(unique_words) < size:
-            raise ValueError("Not enough unique words to sample.")
-        
-        reservoir = random.sample(unique_words, size)  
-        reservoir = self.post_process(reservoir)
         self.size = size
-        self.list = self.set_board_parameters(reservoir)
-        self.turn = random.randint(0,1)
-    
+        self.file = file
+        
     def __iter__(self):
         '''
         A function to define the Iterability of the Grid object
@@ -56,6 +60,8 @@ class grid:
         A function to update the grid with game actions
         Args:
             guess, (string) a string representing the word the player has chosen to guess
+        Output:
+            turn, (int) a value representing who is currently on the play, either 0 for player 1 or 1 for player 2 
         '''
         for i in range(0, self.size):
             if self.list[i].get_word() == guess:
@@ -65,7 +71,7 @@ class grid:
                     turn = 1 - turn
             else:
                 continue
-        return 
+        return turn
 
     def post_process(self, word_list):
         '''
@@ -102,3 +108,20 @@ class grid:
             word_assignments.append(tile(word, 2, False))
         random.shuffle(word_assignments)
         return word_assignments
+    
+    def to_dict(self):
+        '''Convert the grid to a dictionary for easy session storage.'''
+        return {
+            'size': self.size,
+            'turn': self.turn,
+            'words': [
+            tiles.to_dict() if isinstance(tiles, tile) else tiles  # Check if tile is a Tile object before calling to_dict()
+            for tiles in self.list
+        ],
+            'file': self.file
+        }
+
+    @staticmethod
+    def from_dict(data):
+        g = grid(data['size'], data['file'], data['words'], data['turn'])
+        return g

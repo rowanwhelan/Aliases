@@ -18,7 +18,7 @@
         <!-- Game Grid Section -->
         <div class="grid">
             {% for tile in grid %}
-                <div class="grid-item" onclick="handleClick(this, {{ tile.team }}, '{{ tile.word }}', {{ tile.used | tojson }})">
+                <div class="grid-item" onclick="handleClick(this, {{ tile.team }}, '{{ tile.word }}', {{ tile.used | default(false) | tojson }})">
                     {{ tile.word }}
                 </div>
             {% endfor %}
@@ -54,9 +54,13 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ word: word, wordType: wordType })
+                    body: JSON.stringify({ word: word})
                 }).then(response => response.json())
-                  .then(data => console.log('Grid updated:', data))
+                  .then(data => {
+                    console.log('Grid updated:', data)
+                    const gameContainer = document.getElementById('game-container');
+                    gameContainer.style.backgroundColor = data.turn === 1 ? 'blue' : 'red';
+                  })
                   .catch(error => console.error('Error:', error));
             } else {
                 console.log('Tile has already been used. Click ignored.');
