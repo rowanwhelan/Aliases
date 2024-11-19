@@ -23,7 +23,6 @@
             width: 100%;
             height: 100%;
         }
-        /* Chat log section */
         .chat-log {
             width: 250px;
             height: 100%;
@@ -43,12 +42,11 @@
         .chat-log .blue {
             background-color: #cce5ff;
         }
-        /* Grid layout */
         .grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             gap: 10px;
-            max-width: 550px; /* Ensures grid stays within 5-column layout */
+            max-width: 550px;
             padding: 20px;
             flex-grow: 1;
         }
@@ -58,21 +56,20 @@
             align-items: center;
             width: 150px;
             height: 150px;
-            background-color: #ffffff; /* Default background color */
+            background-color: #ffffff;
             border: 1px solid #ccc;
             border-radius: 8px;
             font-size: 1.2rem;
             text-align: center;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            word-wrap: break-word; /* Ensures long words break and wrap */
-            white-space: normal; /* Allows the text to wrap */
-            padding: 10px; /* Adds padding for better text spacing */
-            cursor: pointer; /* Makes it clickable */
+            word-wrap: break-word;
+            white-space: normal;
+            padding: 10px;
+            cursor: pointer;
         }
         .grid-item:hover {
             background-color: #f1f1f1;
         }
-        /* Color scheme for different word types (will be applied only after click) */
         .player1 {
             background-color: red;
         }
@@ -86,7 +83,6 @@
         .neutral {
             background-color: tan;
         }
-        /* Styling for clue and number input box below the grid */
         .clue-section {
             margin-top: 20px;
             display: flex;
@@ -121,9 +117,9 @@
 
         <!-- Game Grid Section -->
         <div class="grid">
-            {% for word, word_type in grid %}
-                <div class="grid-item" onclick="handleClick(this, {{ word_type }})">
-                    {{ word }}
+            {% for tile in grid %}
+                <div class="grid-item" onclick="handleClick(this, {{ tile.team }}, '{{ tile.word }}', {{ tile.used | tojson }})">
+                    {{ tile.word }}
                 </div>
             {% endfor %}
         </div>
@@ -131,24 +127,41 @@
 
     <script>
         // Function to handle click events on grid items
-        function handleClick(element, wordType) {
-            // Disable clicking after the box has been clicked
-            element.style.pointerEvents = 'none';
-
-            // Change the background color based on the word type after click
-            switch (wordType) {
-                case 0: // PLAYER1
-                    element.classList.add('player1');
-                    break;
-                case 1: // PLAYER2
-                    element.classList.add('player2');
-                    break;
-                case -1: // ASSASSIN
-                    element.classList.add('assassin');
-                    break;
-                case 2: // NEUTRAL
-                    element.classList.add('neutral');
-                    break;
+        function handleClick(element, wordType, word, used) {
+            // Only handle the click if the tile has not been used (used is false)
+            if (used === false) {
+                // Disable clicking after the box has been clicked
+                element.style.pointerEvents = 'none';
+    
+                // Change the background color based on the word type after click
+                switch (wordType) {
+                    case 0: // PLAYER1
+                        element.classList.add('player1');
+                        break;
+                    case 1: // PLAYER2
+                        element.classList.add('player2');
+                        break;
+                    case -1: // ASSASSIN
+                        element.classList.add('assassin');
+                        break;
+                    case 2: // NEUTRAL
+                        element.classList.add('neutral');
+                        break;
+                }
+    
+                // Send the guess to the backend via a POST request (optional)
+                fetch('/update-grid', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ word: word, wordType: wordType })
+                }).then(response => response.json())
+                  .then(data => console.log('Grid updated:', data))
+                  .catch(error => console.error('Error:', error));
+            } else {
+                // Optionally, you can handle a case where the tile is already used
+                console.log('Tile has already been used. Click ignored.');
             }
         }
     </script>

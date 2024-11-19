@@ -1,0 +1,4 @@
+.picked {
+    opacity: 0.5;  /* Make picked words appear faded */
+    pointer-events: none;  /* Disable clicking on picked words */
+}

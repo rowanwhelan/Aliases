@@ -9,7 +9,7 @@ class words(Enum):
     OUT = 1
 
 class clue_generator:
-    def __init__(self, board, team, model_path, limit=15):
+    def __init__(self, board, team, limit=15):
         self.board = board
         self.team = team
         list = []
@@ -18,7 +18,6 @@ class clue_generator:
                 list.append(word[0])
         self.word_list = list
         self.limit = limit
-        self.model_path = model_path
         
         
     def related(self, clue, word):
