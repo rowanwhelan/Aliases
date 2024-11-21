@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistics</title>
+    <!-- Link to your CSS (Optional) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    
+    <!-- Include a library for graphs (e.g., Chart.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Game Statistics</h1>
+            <nav>
+                <a href="/">Back to Game</a>
+                <!-- You can add more navigation links here if needed -->
+            </nav>
+        </header>
+        
+        <section id="overview">
+            <h2>Game Overview</h2>
+            <p>Here you will find general statistics and performance data.</p>
+        </section>
+
+        <section id="graphs">
+            <h2>Graphs & Visualizations</h2>
+            <!-- Graphs will be inserted here -->
+            <div>
+                <canvas id="exampleGraph" width="400" height="200"></canvas>
+            </div>
+        </section>
+
+        <section id="additional-info">
+            <h2>Additional Information</h2>
+            <p>This section will contain additional stats and metrics related to the game.</p>
+            <!-- Future content goes here -->
+        </section>
+
+        <footer>
+            <p>© 2024 Game Developer. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Example of a basic graph using Chart.js
+        const ctx = document.getElementById('exampleGraph').getContext('2d');
+        const exampleGraph = new Chart(ctx, {
+            type: 'line', // You can change this to other chart types like bar, radar, etc.
+            data: {
+                labels: ['January', 'February', 'March', 'April', 'May'], // Example labels
+                datasets: [{
+                    label: 'Example Data',
+                    data: [12, 19, 3, 5, 2], // Example data points
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1,
+                    fill: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+1. Create a bot which guesses clues.
+2. Mass produce bot games and use them to fill the statistics page.
+3. Add multiplayer *gulp*
+:-1. Change Styling
