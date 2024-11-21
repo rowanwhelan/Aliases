@@ -30,23 +30,27 @@ def set_board_parameters(board, seed=None):
     random.shuffle(word_assignments)
     return word_assignments
 
+
 def generate_board(file, num_samples=25, seed=None):
-    reservoir = []
-    
+    '''    
+    this method gets 25 words from the list of words in file randomly without replacement
+    input:
+        file, a string representing the path to a csv with the word corpus
+        num_samples, the number of words to grab DEFAULT=25
+        seed, an int representing the random seed DEFAULT=NONE
+    '''
     if seed is not None:
         random.seed(seed)
     
-    with open(file, mode='r', encoding='utf-8') as file:
-        reader = csv.reader(file)
-        for index, row in enumerate(reader):
-            word = row[0]  
+    with open(file, mode='r', encoding='utf-8') as f:
+        reader = csv.reader(f)
+        words = [row[0] for row in reader]  
 
-            if index < num_samples:
-                reservoir.append(word)
-            else:
-                j = random.randint(0, index)
-                if j < num_samples:
-                    reservoir[j] = word
+    unique_words = list(set(words))  
+    if len(unique_words) < num_samples:
+        raise ValueError("Not enough unique words to sample.")
+    
+    reservoir = random.sample(unique_words, num_samples)  
     reservoir = post_process(reservoir)
     board = set_board_parameters(reservoir)
     return board
