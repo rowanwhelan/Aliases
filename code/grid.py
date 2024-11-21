@@ -63,6 +63,7 @@ class grid:
         Output:
             turn, (int) a value representing who is currently on the play, either 0 for player 1 or 1 for player 2 
         '''
+        turn = self.turn
         for i in range(0, self.size):
             if self.list[i].get_word() == guess:
                 if self.list[i].guess(team=self.turn):
@@ -108,3 +109,24 @@ class grid:
             word_assignments.append(tile(word, 2, False))
         random.shuffle(word_assignments)
         return word_assignments
+    
+    def to_json(self):
+        """
+        Converts the Grid object to a JSON-serializable dictionary.
+        """
+        return json.dumps({
+            'size': self.size,
+            'file': self.file,  # Keep track of the file if needed for reconstruction
+            'turn': self.turn,
+            'seed': self.seed,
+            'tiles': [tile.to_json() for tile in self.list]
+        })
+        
+    def from_json(cls, json_data):
+        """
+        Reconstructs a Grid object from a JSON string.
+        """
+        data = json.loads(json_data)
+        grid = cls(size=data['size'], file=data['file'], turn=data['turn'], seed=data['seed'])
+        grid.list = [tile.from_json(tile, tiles) for tiles in data['tiles']]
+        return grid
