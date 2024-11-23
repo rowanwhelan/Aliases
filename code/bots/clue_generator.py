@@ -122,12 +122,12 @@ class clue_generator:
         highest_score = -1
         highest_related_clues = 0
         for word in self.word_list:
-            print(f"Generating clues for '{word}'...")
+            #print(f"Generating clues for '{word}'...")
             synonyms = self.get_synonyms(word)
             
             for synonym in synonyms:
                 score, related_clues = self.score_clue(synonym)
-                print(f"  Clue: {synonym} - Score: {score}, Related: {related_clues}")
+                #print(f"  Clue: {synonym} - Score: {score}, Related: {related_clues}")
                 
                 # Check if the current synonym has a higher score
                 if score > highest_score:
@@ -147,6 +147,18 @@ class clue_generator:
             if tile.team == self.turn and not tile.used
         ]
         
+    def update_bot(self, board):
+        self.board = board
+        self.turn = board.turn
+        
+        self.word_list = [
+            tile.word for tile in board.list 
+            if tile.team == self.turn and not tile.used
+        ]
+    
+    def toString(self):
+        return self.board.toString()
+    
     def to_json(self):
         """
         Converts the clue_generator object to a JSON serializable dictionary.

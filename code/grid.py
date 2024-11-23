@@ -2,6 +2,8 @@ import random
 import csv
 from tile import tile
 import json
+from colorama import Style, Fore, init
+init(autoreset=True)
 
 class grid:
     '''
@@ -25,6 +27,8 @@ class grid:
         self.seed = seed
         if seed is not None:
             random.seed(seed)
+            
+        self.turn = random.randint(0, 1) if turn is None else turn
         
         if list is None or turn is None:
             with open(file, mode='r', encoding='utf-8') as f:
@@ -33,7 +37,6 @@ class grid:
             reservoir = random.sample(words, size)  
             reservoir = self.post_process(reservoir)
             self.list = self.set_board_parameters(reservoir)
-            self.turn = random.randint(0, 1)  # Randomly choose starting turn
         else:
             self.list = list
             self.turn = turn
@@ -66,13 +69,14 @@ class grid:
         turn = self.turn
         for i in range(0, self.size):
             if self.list[i].get_word() == guess:
-                if self.list[i].guess(team=self.turn):
-                    continue
+                self.list[i].used = True
+                if self.list[i].team == self.turn:
+                    self.turn = turn
+                    return turn 
                 else:
-                    turn = 1 - turn
-            else:
-                continue
-        return turn
+                    self.turn = 1 - turn
+                    return self.list[i].team
+        return
 
     def post_process(self, word_list):
         '''
@@ -85,7 +89,9 @@ class grid:
         '''
         for i in range(len(word_list)):
             if "_" in word_list[i]:
-                word_list[i] = (word_list[i].replace("_", " ")).to_lower()
+                word_list[i] = (word_list[i].replace("_", " ")).lower()
+            else:
+                word_list[i] = word_list[i].lower()
         return word_list
     
     def set_board_parameters(self, board):
@@ -101,9 +107,9 @@ class grid:
         random.shuffle(board)
         word_assignments = []
         for word in board[:9]:
-            word_assignments.append(tile(word, 0, False))
+            word_assignments.append(tile(word, self.turn, False))
         for word in board[9:17]:
-            word_assignments.append(tile(word, 1, False))    
+            word_assignments.append(tile(word, 1-self.turn, False))    
         word_assignments.append(tile(board[17], -1, False))
         for word in board[18:]:
             word_assignments.append(tile(word, 2, False))
@@ -130,3 +136,31 @@ class grid:
         grid = cls(size=data['size'], file=data['file'], turn=data['turn'], seed=data['seed'])
         grid.list = [tile.from_json(tile, tiles) for tiles in data['tiles']]
         return grid
+    
+    def toString(self):
+        color_map = {
+        0: Fore.RED,   # Red
+        1: Fore.BLUE,  # Blue
+        2: Fore.YELLOW, # Tan
+        -1: Fore.BLACK, # Black
+        "reset": Style.RESET_ALL}
+
+        result = ""
+        for i, tile in enumerate(self.list):
+            if tile.used:
+                # Format the word with the team's color
+                result += f"{color_map[tile.team]}{tile.word}{color_map['reset']}"
+            else:
+                # Just the word with no formatting
+                result += tile.word
+
+            # Add spacing and line breaks to format the 5x5 grid
+            if (i + 1) % 5 == 0:
+                result += "\n"  # Newline after every 5 tiles
+            else:
+                result += "\t"  # Tab between tiles
+        return result
+    
+    def swap_turn(self):
+        self.turn = 1 - self.turn
+        return

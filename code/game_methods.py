@@ -14,16 +14,16 @@ def post_process(word_list):
             word_list[i] = word_list[i].replace("_", " ")
     return word_list
 
-def set_board_parameters(board, seed=None):
+def set_board_parameters(board, turn, seed=None):
     if seed is not None:
         random.seed(seed)
     
     random.shuffle(board)
     word_assignments = []
     for word in board[:9]:
-        word_assignments.append((word, 0))
+        word_assignments.append((word, turn))
     for word in board[9:17]:
-        word_assignments.append((word, 1))    
+        word_assignments.append((word, 1-turn))    
     word_assignments.append((board[17], -1))
     for word in board[18:]:
         word_assignments.append((word, 2))

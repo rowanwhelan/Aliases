@@ -40,7 +40,7 @@ def update_grid():
 @app.route("/botgame", methods=["GET", "POST"])
 def generate_botgame():
     
-    board = grid(25, 'data/common_nouns.csv',seed=2)
+    board = grid(25, 'data/common_nouns.csv',seed=3)
     cg = clue_generator(board, board.turn)
     
     redis_client.set("board", board.to_json())
@@ -62,7 +62,8 @@ def update_botgame():
     if cg.turn != turn:
         cg.update_team()
         clue, related = cg.give_clue()
-        print(f"new clue {clue} and new number {related}")
+        print(f"new clue {clue} - new number {related} - new turn {turn}\n")
+        print(board.toString())
     return jsonify({
         'clue': clue,
         'related': related
