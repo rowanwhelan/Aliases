@@ -43,6 +43,28 @@ def extract_common_words():
     
     return common_words
 
+def extract_common_nouns():
+    # Get all English words
+    english_words = set(words.words())
+    
+    # Define a helper function to check if a word belongs to a specific category
+    def is_common_word(word, pos_tag):
+        synsets = wn.synsets(word, pos=pos_tag)
+        # A word is considered common if it has at least one matching synset
+        return len(synsets) > 10
+    
+    # Filter common nouns, verbs, and adjectives
+    common_nouns = [word for word in english_words if is_common_word(word, wn.NOUN) and 3 <= len(word) <= 8]
+    common_verbs = [word for word in english_words if is_common_word(word, wn.VERB) and 3 <= len(word) <= 8]
+    common_adjectives = [word for word in english_words if is_common_word(word, wn.ADJ) and 3 <= len(word) <= 8]
+    
+    # Prepare the list of words to save
+    common_words = {
+        "nouns": common_nouns[:100],       # Save the first 200 nouns for brevity
+    }
+    
+    return common_words
+
 def save_words_to_csv(words, output_file):
     with open(output_file, mode='w', encoding='utf-8', newline='') as file:
         writer = csv.writer(file)
@@ -54,9 +76,9 @@ def save_words_to_csv(words, output_file):
     return
 
 def main():
-    filename = 'common_words'
+    filename = 'common_nouns'
     #wordnet_words = extract_wordnet_words()
-    common_words = extract_common_words()
+    common_words = extract_common_nouns()
     save_words_to_csv(common_words, f'data/{filename}.csv')
     print(f"corpus successfully saved to data/{filename}.csv")
     

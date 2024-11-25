@@ -1,24 +1,19 @@
 from enum import Enum
+import json
 import gensim.downloader as api
-#import spacy
+from grid import grid
 from nltk.corpus import wordnet
-from gensim.models import KeyedVectors
-
-class words(Enum):
-    IN = 0
-    OUT = 1
 
 class clue_generator:
-    def __init__(self, board, team, limit=15):
+    def __init__(self, board, turn, limit=15):
         self.board = board
-        self.team = team
-        list = []
-        for word in board:
-            if word[1] == self.team:
-                list.append(word[0])
-        self.word_list = list
+        self.turn = turn
         self.limit = limit
         
+        self.word_list = [
+            tile.word for tile in board.list 
+            if tile.team == self.turn and not tile.used
+        ]
         
     def related(self, clue, word):
         '''
@@ -29,7 +24,7 @@ class clue_generator:
         output:
             probability, a double value representing the likelihood of the given clue making the given word guessable
         '''       
-        #After a bit of research I have found three methods to detect the similarity of words, I won't reason about their effectiveness right now but I will later in the projec twhen teh rest of the architecture is built up enough that this reasoning is based on more that intuition
+        #After a bit of research I have found three methods to detect the similarity of words, I won't reason about their effectiveness right now but I will later in the project when teh rest of the architecture is built up enough that this reasoning is based on more that intuition
         """#GENSIM
         model = api.load("glove-wiki-gigaword-50") 
 
@@ -76,14 +71,14 @@ class clue_generator:
         total_relational_score = 0
         total_related_clues = 0
         for i in self.board:
-            current_related = self.related(clue, i[0])
+            current_related = self.related(clue, i.word)
             if current_related >= 1.0:
                 total_related_clues += 1
-            if i[1] == self.team:
+            if i.team == self.turn:
                 total_relational_score += current_related
-            elif i[1] == abs(self.team-1):
+            elif i.team == abs(self.turn-1):
                 total_relational_score -= (current_related/4)
-            elif i[1] == -1:
+            elif i.team == -1:
                 total_relational_score -= current_related
         score = total_relational_score * (total_related_clues + 0.01)
         return score, total_related_clues
@@ -104,7 +99,7 @@ class clue_generator:
             for syn in wordnet.synsets(word):
                 for lemma in syn.lemmas():
                     # Only add synonyms that are not one-letter words
-                    if len(lemma.name()) > 1 and lemma.name() != word and not any(c in lemma.name() for c in [' ', '_', '-']):
+                    if len(lemma.name()) > 1 and lemma.name().lower() != word.lower() and not any(c in lemma.name() for c in [' ', '_', '-']):
                         synonyms.add(lemma.name())
                     
             
@@ -127,12 +122,12 @@ class clue_generator:
         highest_score = -1
         highest_related_clues = 0
         for word in self.word_list:
-            print(f"Generating clues for '{word}'...")
+            #print(f"Generating clues for '{word}'...")
             synonyms = self.get_synonyms(word)
             
             for synonym in synonyms:
                 score, related_clues = self.score_clue(synonym)
-                print(f"  Clue: {synonym} - Score: {score}, Related: {related_clues}")
+                #print(f"  Clue: {synonym} - Score: {score}, Related: {related_clues}")
                 
                 # Check if the current synonym has a higher score
                 if score > highest_score:
@@ -142,5 +137,56 @@ class clue_generator:
         
         return best_clue, highest_related_clues
     
-
+    def update_team(self):
+        '''
+        This method changes the team and updates the word list so a single clue giver can be used for both teams.
+        '''
+        self.turn = 1 - self.turn
+        self.word_list = [
+            tile.word for tile in self.board.list 
+            if tile.team == self.turn and not tile.used
+        ]
+        
+    def update_bot(self, board):
+        self.board = board
+        self.turn = board.turn
+        
+        self.word_list = [
+            tile.word for tile in board.list 
+            if tile.team == self.turn and not tile.used
+        ]
     
+    def toString(self):
+        return self.board.toString()
+    
+    def to_json(self):
+        """
+        Converts the clue_generator object to a JSON serializable dictionary.
+        Returns:
+            dict: JSON-serializable dictionary representation of the clue_generator object.
+        """
+
+        board_json = self.board.to_json()  
+
+        data = {
+            'board': board_json,
+            'turn': self.turn,
+            'limit': self.limit,
+        }
+        return json.dumps(data)
+
+    def from_json(cls, data):
+        """
+        Converts a JSON serializable dictionary back to a clue_generator object.
+        Args:
+            data (dict): The dictionary to convert back into a clue_generator object.
+        Returns:
+            clue_generator: The reconstructed clue_generator object.
+        """
+        parsed_data = json.loads(data)
+
+        board = grid.from_json(grid,parsed_data['board'])  
+        turn = parsed_data['turn']
+        limit = parsed_data['limit']
+        
+        return clue_generator(board, turn, limit)
