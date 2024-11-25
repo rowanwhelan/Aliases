@@ -49,7 +49,13 @@ class grid:
         A function to define the Iterability of the Grid object
         '''
         return iter(self.list)
-       
+    
+    def __getitem__(self, index):
+        '''
+        A function to define the Subscriptability of the Grid object
+        '''
+        return self.tiles[index]
+    
     def get_grid(self):
         '''
         A function to return the list of tiles

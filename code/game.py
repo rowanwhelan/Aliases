@@ -35,6 +35,11 @@ class game:
         return self.grid.toString()
     
     def update(self):
+        '''
+        This method is the main update sequence of the game
+        Returns:
+            gamestate, (int) this is an integer representing 
+        '''
         if self.state == -1:
             clue, related = self.cg.give_clue()
             guesses = self.guessbot.guess(clue=clue,related=related)
@@ -43,10 +48,10 @@ class game:
                 return
             current_turn = self.grid.turn
             print(f"\n Turn {self.current_turn}\n")
-            print(f"clue: {clue}, guesses: {guesses}")
+            print(f"turn:{self.color_map[self.grid.turn]}{self.grid.turn}{self.color_map['reset']}, bot turn: {self.color_map[self.grid.turn]}{self.guessbot.board.turn}{self.color_map['reset']},clue: {clue} {related}, guesses: {guesses}")
+            print(self.guessbot.toString()+ "\n")
             self.current_turn += 1
             for guess in guesses:
-                print(f"team: {self.color_map[self.grid.turn]}{self.grid.turn}{self.color_map['reset']}, clue:{clue}, related:{related}, guess: {guess}\n")
                 val = self.grid.update_grid(guess)
                 self.cg.update_bot(self.grid)
                 self.guessbot.update_bot(self.grid)
@@ -56,7 +61,6 @@ class game:
                     print(f"{self.color_map[self.grid.turn]}{self.grid.turn} wins{self.color_map['reset']}")
                     print(self.toString())
                     return
-                #print(self.cg.toString())
                 print(self.toString())
                 if val != current_turn:
                     return
@@ -73,7 +77,7 @@ class game:
         
 def main():
     # seed 45643 has an active glitch
-    new_game = game(seed=23052589345)
+    new_game = game(seed=23052235345345)
     new_game.play()
     
     

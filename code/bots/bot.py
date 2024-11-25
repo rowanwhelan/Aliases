@@ -76,32 +76,52 @@ class bot:
 
     def update_bot(self, board):
         """
-        Update the board and reset probabilities for used words only.
+        Update the board and reset probabilities for used words only. 
+        EDIT: I have updated this function to discount words from previous turns to stop the bot from making erronueous guesses based on multiple low percent words
         """
         self.board = board
         for tile in self.board:
             if tile.used:
                 self.probability_scores_0[tile.word] = 0
                 self.probability_scores_1[tile.word] = 0
+            else:
+                self.probability_scores_0[tile.word] = 3/4 * self.probability_scores_0[tile.word]
+                self.probability_scores_1[tile.word] = 3/4 * self.probability_scores_0[tile.word]               
 
-    def to_string(self):
+    def toString(self):
         """
-        Print the board with words color-coded based on their team and their probabilities.
+        Generate string representations of two 5x5 boards (one for each team) showing the
+        probability of each word being related to the respective team. Each word is color-coded
+        for readability.
+        
+        Returns:
+            str: The formatted string representation of the boards.
         """
         color_map = {
-            0: Fore.RED,    # Red
-            1: Fore.BLUE,   # Blue
-            2: Fore.YELLOW, # Tan
-            -1: Fore.BLACK, # Black
+            0: Fore.RED,    # Red team
+            1: Fore.BLUE,   # Blue team
+            2: Fore.YELLOW, # Neutral (Tan)
+            -1: Fore.BLACK, # Assassin
             "reset": Style.RESET_ALL,
         }
-        current_team_scores = (
-            self.probability_scores_0
-            if self.board.turn == 0
-            else self.probability_scores_1
-        )
+        
+        def format_board(scores, color_map):
+            board_lines = []
+            row = []
+            for idx, tile in enumerate(self.board):  # Use direct iteration
+                color = color_map.get(tile.team, Style.RESET_ALL)
+                probability = scores.get(tile.word, 0)
+                row.append(f"{color}{tile.word} ({probability:.2f}){color_map['reset']}")
+                if (idx + 1) % 5 == 0:  # After every 5 tiles, create a row
+                    board_lines.append(" | ".join(row))
+                    row = []
+            return "\n".join(board_lines)
 
-        for tile in self.board:
-            color = color_map.get(tile.team, Style.RESET_ALL)
-            probability = current_team_scores.get(tile.word, 0)
-            print(f"{color}{tile.word}: {probability:.2f}{color_map['reset']}")
+        # Generate the boards for both teams
+        red_team_board = f"{Fore.RED}RED TEAM BOARD:{Style.RESET_ALL}\n{format_board(self.probability_scores_0, color_map)}"
+        blue_team_board = f"{Fore.BLUE}BLUE TEAM BOARD:{Style.RESET_ALL}\n{format_board(self.probability_scores_1, color_map)}"
+        
+        # Concatenate boards with a separator and return
+        return f"{red_team_board}\n\n{'-' * 80}\n\n{blue_team_board}\n\n{'-' * 80}\n\n"
+
+
