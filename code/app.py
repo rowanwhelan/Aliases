@@ -1,6 +1,6 @@
 import random
 from flask import Flask, jsonify, redirect, render_template, request, session, url_for 
-from bots.clue_generator import clue_generator
+from bots.clues.clue_generator import clue_generator
 import redis
 import nltk
 from grid import grid

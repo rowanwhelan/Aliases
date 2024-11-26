@@ -1,7 +1,7 @@
 import random
 from grid import grid
-from bots.clue_generator import clue_generator
-from bots.bot import bot
+from bots.clues.clue_generator import clue_generator
+from bots.guesses.bot import bot
 from colorama import Fore, Style, init
 init(autoreset=True)
 
@@ -29,6 +29,9 @@ class game:
         self.guessbot = bot(self.grid)
         self.current_turn = 0 
         self.state = -1
+        self.red = 0
+        self.blue = 0
+        self.starting_turn = self.grid.turn
 
     
     def toString(self):
@@ -38,7 +41,7 @@ class game:
         '''
         This method is the main update sequence of the game
         Returns:
-            gamestate, (int) this is an integer representing 
+            gamestate, (int) this is an integer representing the state of the game with the following convention (0: RED WIN, 1: BLUE WIN, -1:IN PROGRESS, -100:ERROR)
         '''
         if self.state == -1:
             clue, related = self.cg.give_clue()
@@ -48,23 +51,41 @@ class game:
                 return
             current_turn = self.grid.turn
             print(f"\n Turn {self.current_turn}\n")
-            print(f"turn:{self.color_map[self.grid.turn]}{self.grid.turn}{self.color_map['reset']}, bot turn: {self.color_map[self.grid.turn]}{self.guessbot.board.turn}{self.color_map['reset']},clue: {clue} {related}, guesses: {guesses}")
+            print(f"turn:{self.color_map[self.grid.turn]}{self.grid.turn}{self.color_map['reset']}, clue: {clue} {related}, guesses: {guesses}")
             print(self.guessbot.toString()+ "\n")
             self.current_turn += 1
             for guess in guesses:
+                print(f"guess: {guess}")
                 val = self.grid.update_grid(guess)
-                self.cg.update_bot(self.grid)
-                self.guessbot.update_bot(self.grid)
+                if val == 1:
+                    self.blue += 1
+                if val == 0:
+                    self.red += 1
+                    
+                # GAME END WINNER
+                if self.red == 8 + (1-self.starting_turn) or self.blue == 8 + (self.starting_turn):
+                    self.state = self.grid.turn
+                    print("GAME OVER \n")
+                    print(f"{self.color_map[self.grid.turn]}{self.grid.turn} wins{self.color_map['reset']}")
+                    print(self.toString())
+                    return
+                #GAME END ASSASSIN
                 if val == -1:
                     self.state = self.grid.turn
                     print("GAME OVER \n")
                     print(f"{self.color_map[self.grid.turn]}{self.grid.turn} wins{self.color_map['reset']}")
                     print(self.toString())
                     return
-                print(self.toString())
+                
+                self.cg.update_bot(self.grid)
+                self.guessbot.update_bot(self.grid)
+                #TURN END (INCORRECT GUESS)
                 if val != current_turn:
+                    print(self.toString())
                     return
+            #TURN END (PASS)
             self.grid.swap_turn()
+            print(self.toString())
             return
         return
 
@@ -77,7 +98,7 @@ class game:
         
 def main():
     # seed 45643 has an active glitch
-    new_game = game(seed=23052235345345)
+    new_game = game(seed=231)
     new_game.play()
     
     
