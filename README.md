@@ -13,7 +13,7 @@ This is a **Flask-based word association game** where players take turns selecti
 
 ---
 
-## **⚙Tech Stack**
+## **Tech Stack**
 - **Backend**: Flask, Flask-SQLAlchemy
 - **Database**: SQLite (easily replaceable with PostgreSQL/MySQL)
 - **Game Logic**: Custom Python classes for board and bot-generated clues
