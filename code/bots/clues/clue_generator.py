@@ -1,6 +1,5 @@
 from enum import Enum
 import json
-import gensim.downloader as api
 from grid import grid
 from nltk.corpus import wordnet
 
