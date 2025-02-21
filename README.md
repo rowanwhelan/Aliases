@@ -1,4 +1,4 @@
-# **Word Association Game - Flask Web App**
+# **Aliases - Flask Web App**
 
 This is a **Flask-based word association game** where players take turns selecting words. The game dynamically updates based on team selections and features an integrated **bot mode** that generates clues for automated play. The project is designed for **scalability and maintainability**, using **Flask, SQLAlchemy, and SQLite** to manage game states and statistics.
 
