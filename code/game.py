@@ -5,6 +5,7 @@ from bots.guesses.bot import bot
 from colorama import Fore, Style, init
 init(autoreset=True)
 
+
 class game:
     def __init__(self, seed=None):
         '''

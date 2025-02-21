@@ -1,0 +1,15 @@
+name: wordgame-env
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.9  # Adjust if needed
+  - flask
+  - flask-sqlalchemy
+  - psycopg2  # For PostgreSQL, use `sqlite` instead if using SQLite
+  - nltk
+  - pandas
+  - gunicorn
+  - pip
+  - pip:
+      - clue-generator  # Replace with the actual package or remove if not needed
