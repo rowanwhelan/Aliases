@@ -1,3 +1,4 @@
+Set-Location -Path "C:\Users\rwhel\Portfolio\Aliases\code"
 conda activate wordgame-env
-python -c "from app import db; db.create_all()"
+python setup_db.py
 python -c "import nltk; nltk.download('wordnet')"
