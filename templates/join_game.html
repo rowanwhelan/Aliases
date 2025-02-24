@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Join Game</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 400px; margin: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Join Game {{ game.id }}</h1>
+        <form action="{{ url_for('join_game', game_id=game.id) }}" method="post">
+            <label for="username">Enter your name:</label><br>
+            <input type="text" id="username" name="username" required><br><br>
+            <button type="submit">Join Game</button>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Game Lobby</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 600px; margin: auto; }
+        .join-link { font-size: 1.2em; color: blue; }
+        .player-list { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Game Lobby</h1>
+        <p>Game ID: <strong>{{ game_id }}</strong></p>
+        <p>Share the following link with your teammates to join the game:</p>
+        <p class="join-link">
+            <a href="{{ join_link }}">{{ join_link }}</a>
+        </p>
+        
+        {% if players %}
+            <div class="player-list">
+                <h2>Players Joined:</h2>
+                <ul>
+                    {% for player in players %}
+                        <li>{{ player.username }} (Team {{ player.team }}) (Role {{ player.role}})</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% else %}
+            <p>No players have joined yet.</p>
+        {% endif %}
+        
+    </div>
+    <a href="{{ url_for('start_multiplayer_game', game_id=game_id) }}">
+        <button type="button">Start Game</button>
+    </a>
+</body>
+</html>

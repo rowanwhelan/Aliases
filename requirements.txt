@@ -1,6 +1,0 @@
-flask
-gensim
-spacy
-nltk
-csv
-random

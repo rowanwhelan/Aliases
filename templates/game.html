@@ -4,14 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Game</title>
 </head>
 <body>
-    <!-- Use grid.turn to set the background color -->
+    <!-- Player list displayed in the top-right corner -->
+    <div id="player-list" style="position: absolute; top: 10px; right: 10px; background: #eee; padding: 10px;">
+        <h3>Players</h3>
+        <ul>
+            {% if players %}
+                {% for player in players %}
+                    <li>{{ player.username }} (Team {{ player.team }})</li>
+                {% endfor %}
+            {% else %}
+                <li>No players joined yet.</li>
+            {% endif %}
+        </ul>
+    </div>
+    
+    <!-- Game Container -->
     <div id="game-container" class="container" style="background-color: {{ 'blue' if grid.turn == 1 else 'red' }};">
-        <!-- Chat Log Section -->
+        <!-- Clue Log/Input Section (left side) -->
         <div class="chat-log">
             <div class="clue {{ 'red' if grid.turn == 0 else 'blue' }}">
-                <strong>Clue:</strong> {{ grid.clue }} <span>({{ grid.related }})</span>
+                <strong>Clue Log:</strong>
+                <div id="clue-log">
+                    {% if clue_log %}
+                        {% for entry in clue_log %}
+                            <p>{{ entry }}</p>
+                        {% endfor %}
+                    {% else %}
+                        <p>No clues yet.</p>
+                    {% endif %}
+                </div>
+                {% if player_role == 1 %}
+                <div id="clue-inputs">
+                    <input type="text" id="clueText" placeholder="Enter clue text">
+                    <input type="number" id="clueNumber" placeholder="Enter number">
+                    <button onclick="submitClue()">Submit Clue</button>
+                </div>
+                {% endif %}
             </div>
         </div>
 
@@ -26,13 +57,10 @@
     </div>
 
     <script>
-        // Function to handle click events on grid items
+        // Existing function to handle grid tile clicks
         function handleClick(element, wordType, word, used) {
             if (used === false) {
-                // Disable clicking after the box has been clicked
                 element.style.pointerEvents = 'none';
-
-                // Change the background color based on the word type after click
                 switch (wordType) {
                     case 0: // PLAYER1
                         element.classList.add('player1');
@@ -48,17 +76,13 @@
                         element.classList.add('neutral');
                         break;
                 }
-
-                // Send the guess to the backend via a POST request
                 fetch('/update-grid', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ word: word})
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ word: word })
                 }).then(response => response.json())
                   .then(data => {
-                    console.log('Grid updated:', data)
+                    console.log('Grid updated:', data);
                     const gameContainer = document.getElementById('game-container');
                     gameContainer.style.backgroundColor = data.turn === 1 ? 'blue' : 'red';
                   })
@@ -66,6 +90,29 @@
             } else {
                 console.log('Tile has already been used. Click ignored.');
             }
+        }
+        
+        // Function to submit a clue (only available for players with role 1)
+        function submitClue() {
+            var clueText = document.getElementById('clueText').value;
+            var clueNumber = document.getElementById('clueNumber').value;
+            fetch('/submit_clue', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ clue: clueText, number: clueNumber })
+            }).then(response => response.json())
+              .then(data => {
+                console.log('Clue submitted:', data);
+                // Append new clue entry to the log
+                var clueLogDiv = document.getElementById('clue-log');
+                var newEntry = document.createElement('p');
+                newEntry.textContent = clueText + ' (' + clueNumber + ')';
+                clueLogDiv.appendChild(newEntry);
+                // Clear inputs after submission
+                document.getElementById('clueText').value = "";
+                document.getElementById('clueNumber').value = "";
+              })
+              .catch(error => console.error('Error:', error));
         }
     </script>
 </body>

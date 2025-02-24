@@ -34,6 +34,10 @@
 
         <button onclick="window.location.href='/game'">Play Custom Game</button>
         <button onclick="window.location.href='/botgame'">Play Bot Game</button>
+        <form action="/create_game" method="POST">
+            <button type="submit">Create Multiplayer Game</button>
+        </form>
+        <button onclick="window.location.href='/get_active_games'">Join Multiplayer Game</button>
     </div>
 </body>
 </html>

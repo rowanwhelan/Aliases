@@ -34,8 +34,9 @@ class Player(db.Model):
     __tablename__ = 'players'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), nullable=False)
-    team = db.Column(db.Integer, nullable=False)  # 0 or 1 for team assignment
+    team = db.Column(db.Integer, nullable=False)  # 0 (red) or 1 (blue) for team assignment
     game_id = db.Column(db.Integer, db.ForeignKey('games.id'), nullable=False)
+    role = db.Column(db.Integer, nullable=False) # 0 (guesser) or 1 (clue giver) 
 
 
 ### GENERAL PAGES ###
@@ -73,7 +74,7 @@ def join_game(game_id):
         if current_players >= 4:
             return "Game is full", 400
         team = current_players % 2  # alternate teams (0, then 1, then 0, ...)
-        new_player = Player(username=username, team=team, game_id=game.id)
+        new_player = Player(username=username, team=team, game_id=game.id, role=1 if current_players in [0, 1] else 0)
         db.session.add(new_player)
         db.session.commit()
         return redirect(url_for('lobby', game_id=game.id))
@@ -88,35 +89,25 @@ def lobby(game_id):
     players = Player.query.filter_by(game_id=game.id).all()
     return render_template('lobby.html', game_id=game.id, join_link=join_link, players=players)
 
+@app.route("/game/<int:game_id>", methods=["GET", "POST"])
+def start_multiplayer_game(game_id):
+    # Retrieve the multiplayer game and its players
+    game = Game.query.get_or_404(game_id)
+    players = Player.query.filter_by(game_id=game.id).all()
+    
+    # Initialize the game board as before
+    board = grid(25, 'C:/Users/rwhel/Portfolio/Aliases/data/common_words.csv', seed=1)
+    game_board = GameBoard(board_state=board.to_json(), turn=board.turn)
+    db.session.add(game_board)
+    db.session.commit()
+    
+    # Render the game page with both the grid and player list
+    return render_template("game.html", grid=board, players=players)
 @app.route('/get_active_games', methods=['GET'])
 def get_active_games():
     games = Game.query.filter_by(status='waiting').all()
     active_games = [{"game_id": game.id, "players": len(game.players)} for game in games]
     return jsonify({"active_games": active_games}), 200
-
-@app.route('/make_move/<int:game_id>/<int:player_id>', methods=['POST'])
-def make_move(game_id, player_id):
-    game = Game.query.get(game_id)
-    player = Player.query.get(player_id)
-
-    if not game or not player:
-        return jsonify({"message": "Invalid game or player"}), 400
-
-    if game.status != 'in-progress':
-        return jsonify({"message": "Game not in progress"}), 400
-
-    if player.team != game.turn:
-        return jsonify({"message": "It's not your turn"}), 400
-
-    # Logic to handle making a move (e.g., selecting a word, updating board, etc.)
-    data = request.json
-    word = data.get('word')
-    turn = GameBoard.board_state.update_grid(word)
-    # Update turn to the other team
-    game.turn = turn # Toggle between team 0 and team 1
-    db.session.commit()
-
-    return jsonify({"message": "Move made", "turn": game.turn}), 200
 
 @app.route('/end_game/<int:game_id>', methods=['POST'])
 def end_game(game_id):
@@ -133,7 +124,7 @@ def end_game(game_id):
 ### GENERALIZED GAME METHODS ###
 @app.route("/game", methods=["GET", "POST"])
 def generate_game():
-    board = grid(25, '../data/common_words.csv', seed=1)
+    board = grid(25, 'C:/Users/rwhel/Portfolio/Aliases/data/common_words.csv', seed=1)
     game = GameBoard(board_state=board.to_json(), turn=board.turn)
     db.session.add(game)
     db.session.commit()
