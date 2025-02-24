@@ -1,3 +1,4 @@
+import math
 import random
 from grid import grid
 from bots.clues.clue_generator import clue_generator
@@ -45,6 +46,8 @@ class game:
             gamestate, (int) this is an integer representing the state of the game with the following convention (0: RED WIN, 1: BLUE WIN, -1:IN PROGRESS, -100:ERROR)
         '''
         if self.state == -1:
+            self.cg.update_bot(self.grid)
+            self.guessbot.update_bot(self.grid)
             clue, related = self.cg.give_clue()
             guesses = self.guessbot.guess(clue=clue,related=related)
             if guesses == []:
@@ -52,10 +55,12 @@ class game:
                 return
             current_turn = self.grid.turn
             print(f"\n Turn {self.current_turn}\n")
-            print(f"turn:{self.color_map[self.grid.turn]}{self.grid.turn}{self.color_map['reset']}, clue: {clue} {related}, guesses: {guesses}")
+            print(f"turn:{self.color_map[self.grid.turn]}{self.grid.turn}{self.color_map['reset']}, clue: {clue} {related}, guesses: {guesses} \n the cluebot thinks it is {self.cg.turn}'s turn and is giving clues for the following words: {self.cg.word_list} ")
             print(self.guessbot.toString()+ "\n")
             self.current_turn += 1
             for guess in guesses:
+                self.cg.update_bot(self.grid)
+                self.guessbot.update_bot(self.grid)
                 print(f"guess: {guess}")
                 val = self.grid.update_grid(guess)
                 if val == 1:
@@ -78,8 +83,6 @@ class game:
                     print(self.toString())
                     return
                 
-                self.cg.update_bot(self.grid)
-                self.guessbot.update_bot(self.grid)
                 #TURN END (INCORRECT GUESS)
                 if val != current_turn:
                     print(self.toString())
@@ -95,11 +98,66 @@ class game:
         while self.state == -1:
             self.update()
         return
-            
+    
+    def tabulate_entropy(grid, self):
+        '''
+        This method calculates the entropy decrease in the game after each clue.
+        Is probability monotonic (ignores the probability of each clue given by the guessbot)
+        Args: 
+            grid: the grid state after the clue has been given but before the guesses have been inputted
+        Returns:
+            score: A postitive value which evaluates the entropy decrease of the system
+                EDGE CASE: if a -1 is returned then there was an error
+        '''
+        score = -1
+        total_tiles_before = 0
+        for tile in grid:
+            if not tile.used:
+                total_tiles_before += 1
+        total_tiles_after = 0
+        for tile in self.grid:
+            if not tile.used:
+                total_tiles_after += 1
+        # These values are equivilent because we know each probability n is equivalent (this is a constraint of the input)
+        entropy_before = math.log2(1/total_tiles_before)
+        entropy_after = math.log2(1/total_tiles_after)
+        
+        score = entropy_before - entropy_after
+        return score
+
+    def tabulate_correctness_entropy(grid, self):
+        '''
+        This method calculates the entropy decrease in the game while also factoring in the "correctness" of the entropy. 
+        Meaning a decrease in entropy in the opponenets clues or an increase in the entropy of this teams clues counts negatively against this score.
+        Args:  
+            grid: the grid state after the clue has been given but before the guesses have been inputted
+        Returns:
+            score: A value which evaluates the entropy decrease of the system
+                EDGE CASE: will throw an error rather than return -1 because these scores can be negative
+        '''    
+        score = 0
+        total_tiles_before = 0
+        for tile in grid:
+            if not tile.used:
+                total_tiles_before += 1
+                # Now add the probability to a list holding all of the probabilities for and against 
+        total_tiles_after = 0
+        for tile in self.grid:
+            if not tile.used:
+                total_tiles_after += 1
+                # Now add the probability to a list holding all of the probabilities for and against
+        '''
+        THIS IS THE FORMULA BUT THIS WILL BE IMPLEMENTED LATER
+        entropy_before = -sum(p * math.log2(p) for p in probabilities if p > 0)
+        entropy_after = -sum(p * math.log2(p) for p in probabilities if p > 0)
+        '''
+        score = 0
+        return score
         
 def main():
     # seed 45643 has an active glitch
-    new_game = game(seed=231)
+    # seed 252 had a glitch which I think I fixed. Need to investigate the clue given under duress.
+    new_game = game(seed=254)
     new_game.play()
     
     

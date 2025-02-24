@@ -197,7 +197,7 @@ def generate_game():
     game = GameBoard(board_state=board.to_json(), turn=board.turn)
     db.session.add(game)
     db.session.commit()
-    return render_template("game.html", grid=board)
+    return render_template("game.html", grid=board, role=0)
 
 @app.route('/update-grid', methods=['POST'])
 def update_grid():

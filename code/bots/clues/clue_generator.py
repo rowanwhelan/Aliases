@@ -148,10 +148,11 @@ class clue_generator:
         
     def update_bot(self, board):
         self.board = board
-        self.turn = board.turn
-        
+        if self.turn != board.turn:
+            self.update_team()
+
         self.word_list = [
-            tile.word for tile in board.list 
+            tile.word for tile in self.board.list 
             if tile.team == self.turn and not tile.used
         ]
     
