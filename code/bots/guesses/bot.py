@@ -123,5 +123,20 @@ class bot:
         
         # Concatenate boards with a separator and return
         return f"{red_team_board}\n\n{'-' * 80}\n\n{blue_team_board}\n\n{'-' * 80}\n\n"
+    
+    def get_probability(self, tile):
+        """
+        Retrieve the probability score of a given tile based on the current team's turn.
+
+        Args:
+            tile (Tile): The tile whose probability score is being queried.
+
+        Returns:
+            float: The probability score for the tile.
+        """
+        current_team_scores = (
+            self.probability_scores_0 if self.board.turn == 0 else self.probability_scores_1
+        )
+        return current_team_scores.get(tile.word, 0)
 
 
