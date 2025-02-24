@@ -14,7 +14,7 @@ db = SQLAlchemy(app)
 class GameBoard(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     board_state = db.Column(db.JSON, nullable=False)
-    turn = db.Column(db.String, nullable=False)
+    turn = db.Column(db.Integer, nullable=False)
 
     def to_json(self):
         return {"board": self.board_state, "turn": self.turn}
@@ -125,9 +125,17 @@ def start_multiplayer_game(game_id):
 
 @app.route('/get_active_games', methods=['GET'])
 def get_active_games():
-    games = Game.query.filter_by(status='waiting').all()
-    active_games = [{"game_id": game.id, "players": len(game.players)} for game in games]
-    return jsonify({"active_games": active_games}), 200
+    # Get the page number from the query string (default to 1 if not provided)
+    page = request.args.get('page', 1, type=int)
+    
+    # Fetch games that are waiting for players, with pagination (25 per page)
+    games = Game.query.filter_by(status='waiting').paginate(page=page, per_page=25, error_out=False)
+
+    # Prepare data to be displayed
+    active_games = [{"game_id": game.id, "players": len(game.players)} for game in games.items]
+    
+    # Render the active_games.html template with the active games data and pagination info
+    return render_template('active_games.html', active_games=active_games, page=page, total_pages=games.pages)
 
 @app.route('/end_game/<int:game_id>', methods=['POST'])
 def end_game(game_id):

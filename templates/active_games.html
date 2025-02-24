@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Active Games</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: auto; }
+        .game-list { margin-top: 20px; }
+        .game-item { margin-bottom: 15px; }
+        .game-id { font-weight: bold; }
+        .join-button {
+            padding: 10px 15px;
+            background-color: blue;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .join-button:hover {
+            background-color: darkblue;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Active Games</h1>
+        <div class="game-list">
+            {% if active_games %}
+                <ul>
+                    {% for game in active_games %}
+                        <li class="game-item">
+                            <span class="game-id">Game ID: {{ game.game_id }}</span> - Players: {{ game.players }}
+                            <a href="{{ url_for('join_game', game_id=game.game_id) }}">
+                                <button class="join-button">Join Game</button>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No active games at the moment.</p>
+            {% endif %}
+        </div>
+        <div class="pagination">
+            {% if page > 1 %}
+                <a href="{{ url_for('get_active_games', page=page-1) }}">Previous</a>
+            {% endif %}
+            
+            <span>Page {{ page }} of {{ total_pages }}</span>
+            
+            {% if page < total_pages %}
+                <a href="{{ url_for('get_active_games', page=page+1) }}">Next</a>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
