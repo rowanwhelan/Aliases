@@ -7,6 +7,7 @@ from flask_sqlalchemy import SQLAlchemy # type: ignore
 app = Flask(__name__,template_folder='../templates', static_folder='../static')
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///C:/Users/rwhel/Portfolio/Aliases/code/instance/Aliases.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.secret_key = "sodfnsognosfn"
 db = SQLAlchemy(app)
 
 ### CLASS DEFINITIONS ###
@@ -65,20 +66,29 @@ def create_game():
 @app.route('/join_game/<int:game_id>', methods=['GET', 'POST'])
 def join_game(game_id):
     game = Game.query.get_or_404(game_id)
-    
+
     if request.method == 'POST':
-        # Get the player's username from a form submission
+        # Get the player's username from the form
         username = request.form.get('username')
-        # Count current players to decide which team to assign
+
+        # Count current players to decide the team
         current_players = Player.query.filter_by(game_id=game.id).count()
         if current_players >= 4:
             return "Game is full", 400
-        team = current_players % 2  # alternate teams (0, then 1, then 0, ...)
-        new_player = Player(username=username, team=team, game_id=game.id, role=1 if current_players in [0, 1] else 0)
+        
+        team = current_players % 2  # Alternate teams (0, 1, 0, 1)
+        role = 1 if current_players in [0, 1] else 0  # First two players get role 1
+        
+        # Create and save the new player
+        new_player = Player(username=username, team=team, game_id=game.id, role=role)
         db.session.add(new_player)
         db.session.commit()
+
+        # Store the role in the session
+        session['username'] = username
+
         return redirect(url_for('lobby', game_id=game.id))
-    
+
     # For GET requests, show the join form
     return render_template('join_game.html', game=game)
 
@@ -91,18 +101,28 @@ def lobby(game_id):
 
 @app.route("/game/<int:game_id>", methods=["GET", "POST"])
 def start_multiplayer_game(game_id):
-    # Retrieve the multiplayer game and its players
+    # Retrieve the game and its players
     game = Game.query.get_or_404(game_id)
     players = Player.query.filter_by(game_id=game.id).all()
-    
-    # Initialize the game board as before
+
+    # Identify the current player (assuming their username is stored in session)
+    username = session.get("username")
+    if not username:
+        return redirect(url_for("lobby", game_id=game_id))  # Redirect if not logged in
+
+    current_player = next((p for p in players if p.username == username), None)
+    if not current_player:
+        return redirect(url_for("lobby", game_id=game_id))  # Redirect if not in the game
+
+    # Initialize the game board
     board = grid(25, 'C:/Users/rwhel/Portfolio/Aliases/data/common_words.csv', seed=1)
     game_board = GameBoard(board_state=board.to_json(), turn=board.turn)
     db.session.add(game_board)
     db.session.commit()
-    
-    # Render the game page with both the grid and player list
-    return render_template("game.html", grid=board, players=players)
+
+    # Render the game page with player role
+    return render_template("game.html", grid=board, players=players, role=current_player.role)
+
 @app.route('/get_active_games', methods=['GET'])
 def get_active_games():
     games = Game.query.filter_by(status='waiting').all()
@@ -120,6 +140,47 @@ def end_game(game_id):
     db.session.commit()
 
     return jsonify({"message": "Game ended"}), 200
+
+@app.route('/submit_clue', methods=['POST'])
+def submit_clue():
+    # Ensure a user is logged in
+    username = session.get("username")
+    if not username:
+        return jsonify({"error": "User not logged in"}), 403
+
+    # Find the player
+    player = Player.query.filter_by(username=username).first()
+    if not player:
+        return jsonify({"error": "Player not found"}), 404
+
+    # Ensure the player is role 1 (clue giver)
+    if player.role != 1:
+        return jsonify({"error": "Only role 1 players can submit clues"}), 403
+
+    # Get the clue data from the request
+    data = request.get_json()
+    clue_text = data.get("clue")
+    clue_number = data.get("number")
+
+    # Validate inputs
+    if not clue_text or not isinstance(clue_number, int) or clue_number <= 0:
+        return jsonify({"error": "Invalid clue input"}), 400
+
+    # Save the clue (assuming there's a GameState or ClueLog model)
+    game = Game.query.get(player.game_id)
+    if not game:
+        return jsonify({"error": "Game not found"}), 404
+
+    # Append clue to the game log (assuming game has a clue_log column)
+    if game.clue_log is None:
+        game.clue_log = []
+    game.clue_log.append(f"{clue_text} ({clue_number})")
+
+    db.session.commit()
+
+    # Return success response
+    return jsonify({"message": "Clue submitted successfully", "clue": clue_text, "number": clue_number})
+
 
 ### GENERALIZED GAME METHODS ###
 @app.route("/game", methods=["GET", "POST"])

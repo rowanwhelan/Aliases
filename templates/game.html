@@ -13,7 +13,7 @@
         <ul>
             {% if players %}
                 {% for player in players %}
-                    <li>{{ player.username }} (Team {{ player.team }})</li>
+                    <li>{{ player.username }} (Team {{ player.team }}, Role {{player.role}})</li>
                 {% endfor %}
             {% else %}
                 <li>No players joined yet.</li>
@@ -36,7 +36,7 @@
                         <p>No clues yet.</p>
                     {% endif %}
                 </div>
-                {% if player_role == 1 %}
+                {% if role == 1 %}
                 <div id="clue-inputs">
                     <input type="text" id="clueText" placeholder="Enter clue text">
                     <input type="number" id="clueNumber" placeholder="Enter number">
@@ -49,7 +49,13 @@
         <!-- Game Grid Section -->
         <div class="grid">
             {% for tile in grid %}
-                <div class="grid-item" onclick="handleClick(this, {{ tile.team }}, '{{ tile.word }}', {{ tile.used | default(false) | tojson }})">
+                <div 
+                    class="grid-item {% if role == 1 or tile.used %} 
+                        {{ 'player1' if tile.team == 0 else 'player2' if tile.team == 1 else 'assassin' if tile.team == -1 else 'neutral' }} 
+                    {% endif %}"
+                    {% if role == 0 and not tile.used %}
+                        onclick="handleClick(this, {{ tile.team }}, '{{ tile.word }}', {{ tile.used | default(false) | tojson }})"
+                    {% endif %}>
                     {{ tile.word }}
                 </div>
             {% endfor %}
