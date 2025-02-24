@@ -3,9 +3,28 @@ This is a codenames spoof which I am going to program so I can experiment with d
 
 # Changelog
 
+## v0.5 - 2/24/2025
+This update sets the foundation for more advanced multiplayer interactions, AI enhancements, and overall gameplay improvements.
+
+---
+
+### Added:
+- **Single-User Multiplayer**: Enabled seamless switching between teams for a solo player, allowing full game simulation without requiring multiple participants.
+- **Dynamic HTML Scripting & Display**: Implemented real-time updates to the game board and UI using JavaScript, improving responsiveness and reducing the need for page reloads.
+- **Clue Robot Validation & Evaluation**: Introduced basic logic to assess the validity and quality of bot-generated clues, paving the way for more sophisticated AI-assisted gameplay.
+
+--- 
+
+### Fixed:
+
+- **Integrated Database for Grid Storage**: Moved away from Redis, implementing a structured database-backed approach for efficient indexing and retrieval of the 5x5 game grid.
+- **Game Flow Refinements**: Improved turn logic to prevent unnecessary state conflicts, ensuring a smoother user experience.
+- **Performance Optimizations**: Reduced redundant data processing and improved rendering speed for faster game state updates.
+- **Codebase Cleanup & Modularization**: Refactored core components to improve maintainability and facilitate future expansions.
+
 ## v0.4 - 11/21/24
 
-This release marks a significant milestone in the development of the game. The game is now fully functional, with a robust backend powered by Flask and Redis for efficient state management. Key bugs have been addressed, making the gameplay smooth and reliable.
+This release marks a significant milestone in the development of the game. The singleplayer game is now fully functional, with a robust backend powered by Flask and Redis for efficient state management. Key bugs have been addressed, making the gameplay smooth and reliable.
 
 ---
 
