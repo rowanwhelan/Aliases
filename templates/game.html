@@ -50,9 +50,10 @@
         <div class="grid">
             {% for tile in grid %}
                 <div 
-                    class="grid-item {% if role == 1 or tile.used %} 
-                        {{ 'player1' if tile.team == 0 else 'player2' if tile.team == 1 else 'assassin' if tile.team == -1 else 'neutral' }} 
-                    {% endif %}"
+                    class="grid-item 
+                        {% if role == 1 or tile.used %} 
+                            {{ 'player1' if tile.team == 0 else 'player2' if tile.team == 1 else 'assassin' if tile.team == -1 else 'neutral' }} 
+                        {% endif %}"
                     {% if role == 0 and not tile.used %}
                         onclick="handleClick(this, {{ tile.team }}, '{{ tile.word }}', {{ tile.used | default(false) | tojson }})"
                     {% endif %}>
