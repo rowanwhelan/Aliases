@@ -47,6 +47,13 @@ class game:
         '''
         return self.grid.__iter__()
     
+    def __getitem__(self, index):
+        """
+        Allow direct indexing into the game's grid.
+        Example: game[0] -> returns the first tile in the grid.
+        """
+        return self.grid[index]
+    
     def get_grid(self):
         """
         Returns a deep copy of the current grid to avoid unintended modifications.
